@@ -6,6 +6,7 @@ import {
   updateTask,
   toggleTask
 } from '../services/taskService';
+import Swal from 'sweetalert2';
 
 function TasksPage() {
   const [tasks, setTasks] = useState([]);
@@ -26,34 +27,41 @@ function TasksPage() {
     loadTasks();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (editingId) {
-      await updateTask(editingId, {
-        title,
-        description,
-        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
-        priority
-      });
-      setEditingId(null);
-    } else {
-      await createTask({
-        title,
-        description,
-        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
-        priority
-      });
-    }
+  if (editingId) {
+    await updateTask(editingId, { title, description, dueDate, priority });
 
-    // 🔥 limpiar formulario SIEMPRE
-    setTitle('');
-    setDescription('');
-    setDueDate('');
-    setPriority(1);
+    Swal.fire({
+      icon: 'success',
+      title: 'Actualizado',
+      text: 'Tarea actualizada correctamente'
+    });
 
-    loadTasks();
-  };
+    setEditingId(null);
+  } else {
+    await createTask({
+      title,
+      description,
+      dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+      priority
+    });
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Creado',
+      text: 'Tarea creada correctamente'
+    });
+  }
+
+  setTitle('');
+  setDescription('');
+  setDueDate('');
+  setPriority(1);
+
+  loadTasks();
+};
 
   const filteredTasks = tasks.filter(t => {
     if (filter === 'completed') return t.status === 2;
@@ -66,37 +74,39 @@ function TasksPage() {
       
       <div className="max-w-2xl mx-auto">
 
-        {/* 🌙 MODO OSCURO */}
+        {/* MODO OSCURO */}
         <div className="text-right mb-4">
           <button
             onClick={() => setDarkMode(!darkMode)}
             className="px-3 py-1 bg-black text-white rounded"
           >
-            {darkMode ? '☀️ LUZ' : '🌙 OSCURO'}
+            {darkMode ? '🌙 ON' : '🌙 OFF'}
           </button>
         </div>
 
         <h1 className="text-3xl font-bold mb-6 text-center">
-          📝 Gestión de Tareas
+           Gestión de Tareas
         </h1>
 
-        {/* 🧾 FORMULARIO */}
+        {/*  FORMULARIO */}
         <form
           onSubmit={handleSubmit}
-          className={`${darkMode ? 'bg-gray-800' : 'bg-white'} p-4 rounded-xl shadow mb-6`}
+          className={`${darkMode ? 'bg-gray-800' : 'bg-white'} p-4 rounded-xl shadow mb-6 backdrop-blur-md`}
         >
           <input
             className="w-full p-2 border rounded mb-2 text-black"
             placeholder="Título"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            required
           />
 
           <textarea
-            className="w-full p-2 border rounded mb-2 text-black"
+            className="w-full p-2 border rounded mb-2 text-black backdrop-blur-md"
             placeholder="Descripción"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            required
           />
 
           <input
@@ -104,48 +114,52 @@ function TasksPage() {
             className="w-full p-2 border rounded mb-2 text-black"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
+            required
           />
 
           <select
             className="w-full p-2 border rounded mb-2 text-black"
             value={priority}
             onChange={(e) => setPriority(Number(e.target.value))}
+            required
           >
             <option value={1}>Baja</option>
             <option value={2}>Media</option>
             <option value={3}>Alta</option>
           </select>
 
-          <button className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition">
+          <button className="w-full bg-blue-500 text-black p-2 rounded hover:bg-blue-600 transition">
             {editingId ? 'Actualizar' : 'Crear'}
           </button>
         </form>
 
-        {/* 🎛️ FILTROS */}
-        <div className="flex justify-center gap-2 mb-4">
+        {/* FILTROS */}
+        <div className="flex justify-center gap-2 mb-4 backdrop-blur-md">
+          
           <button
             onClick={() => setFilter('all')}
-            className="px-3 py-1 bg-gray-300 rounded hover:scale-105 transition"
+            className="px-3 py-1 bg-blue-500 text-black rounded hover:scale-105 transition"
           >
             Todas
           </button>
-
+          
           <button
             onClick={() => setFilter('pending')}
-            className="px-3 py-1 bg-yellow-400 rounded hover:scale-105 transition"
-          >
-            Pendientes
+            className="px-8 py-1 bg-gray-400 text-black rounded hover:scale-105 transition"
+          >            
+          Pendientes
+            
           </button>
 
           <button
             onClick={() => setFilter('completed')}
-            className="px-3 py-1 bg-green-500 text-white rounded hover:scale-105 transition"
+            className="px-3 py-1 bg-green-500 text-black rounded hover:scale-105 transition"
           >
             Completadas
           </button>
         </div>
 
-        {/* 📋 LISTA */}
+        {/* LISTA */}
         {filteredTasks.map((t) => {
           const isExpired = t.dueDate && new Date(t.dueDate) < new Date();
 
@@ -195,7 +209,7 @@ function TasksPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => toggleTask(t.id).then(loadTasks)}
-                  className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition"
+                  className="bg-white-500 text-white px-2 py-1 rounded hover:bg-green-600 transition"
                 >
                   ✔
                 </button>
@@ -208,14 +222,31 @@ function TasksPage() {
                     setPriority(t.priority);
                     setEditingId(t.id);
                   }}
-                  className="bg-yellow-400 text-white px-2 py-1 rounded hover:bg-yellow-500 transition"
+                  className="bg-white-400 text-white px-2 py-1 rounded hover:bg-yellow-500 transition"
                 >
                   ✏
                 </button>
 
                 <button
-                  onClick={() => deleteTask(t.id).then(loadTasks)}
-                  className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition"
+                  onClick={() => {
+                      Swal.fire({
+                        title: '¿Eliminar tarea?',
+                        text: 'No podrás recuperarla',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#e3342f',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, eliminar'
+                      }).then(async (result) => {
+                        if (result.isConfirmed) {
+                          await deleteTask(t.id);
+                          loadTasks();
+
+                          Swal.fire('Eliminado', 'La tarea fue eliminada', 'success');
+                        }
+                      });
+                    }}
+                    className="bg-white-400 text-white px-2 py-1 rounded hover:bg-red-500 transition"
                 >
                   🗑
                 </button>
