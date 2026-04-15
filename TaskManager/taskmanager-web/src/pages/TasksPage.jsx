@@ -126,7 +126,14 @@ function TasksPage() {
           <div className="text-right mb-1">
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="px-2 py-0.5 bg-black text-white rounded-xl font-bold"
+              className="px-2 py-0.5 bg-black 
+              text-white rounded-xl 
+              font-bold
+              hover:scale-105 
+              duration-500 
+              transition-shadow shadow-md  
+              hover:shadow-xl hover:shadow-gray-600 rounded-xl
+              "
             >
               {darkMode ? '🌙 ON' : '🌙 OFF'}
             </button>
